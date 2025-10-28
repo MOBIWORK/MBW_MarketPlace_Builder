@@ -1,33 +1,33 @@
 <template>
 	<Dropdown
 		:options="[
-			{
-				group: 'Builder',
-				hideLabel: true,
-				items: [
-					{ label: 'Back to Dashboard', onClick: () => $router.push({ name: 'home' }), icon: 'arrow-left' },
-				],
-			},
+			// {
+			// 	group: 'Builder',
+			// 	hideLabel: true,
+			// 	items: [
+			// 		{ label: 'Back to Dashboard', onClick: () => $router.push({ name: 'home' }), icon: 'arrow-left' },
+			// 	],
+			// },
 			{
 				group: 'Page',
 				hideLabel: true,
 				items: [
-					{
-						label: 'New Page',
-						onClick: () => $router.push({ name: 'builder', params: { pageId: 'new' } }),
-						icon: 'plus',
-					},
-					{
-						label: 'Copy Page',
-						onClick: handleCopyPage,
-						icon: 'clipboard',
-						condition: () => Boolean(pageStore.activePage),
-					},
-					{
-						label: 'Duplicate Page',
-						onClick: () => pageStore.duplicatePage(pageStore.activePage as BuilderPage),
-						icon: 'copy',
-					},
+					// {
+					// 	label: 'New Page',
+					// 	onClick: () => $router.push({ name: 'builder', params: { pageId: 'new' } }),
+					// 	icon: 'plus',
+					// },
+					// {
+					// 	label: 'Copy Page',
+					// 	onClick: handleCopyPage,
+					// 	icon: 'clipboard',
+					// 	condition: () => Boolean(pageStore.activePage),
+					// },
+					// {
+					// 	label: 'Duplicate Page',
+					// 	onClick: () => pageStore.duplicatePage(pageStore.activePage as BuilderPage),
+					// 	icon: 'copy',
+					// },
 					{
 						label: `Toggle Theme`,
 						onClick: () => toggleDark(),
@@ -45,22 +45,22 @@
 					},
 				],
 			},
-			{
-				group: 'Delete',
-				hideLabel: true,
-				items: [
-					{
-						label: 'Delete Page',
-						onClick: () => {
-							if (!pageStore.activePage) return;
-							pageStore.deletePage(pageStore.activePage).then(() => {
-								$router.push({ name: 'home' });
-							});
-						},
-						icon: 'trash-2',
-					},
-				],
-			},
+			// {
+			// 	group: 'Delete',
+			// 	hideLabel: true,
+			// 	items: [
+			// 		{
+			// 			label: 'Delete Page',
+			// 			onClick: () => {
+			// 				if (!pageStore.activePage) return;
+			// 				pageStore.deletePage(pageStore.activePage).then(() => {
+			// 					$router.push({ name: 'home' });
+			// 				});
+			// 			},
+			// 			icon: 'trash-2',
+			// 		},
+			// 	],
+			// },
 		]"
 		size="sm"
 		class="flex-1 [&>div>div>div]:w-full"
