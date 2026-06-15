@@ -1,0 +1,93 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-06-15 10:08:55.981472",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "website",
+  "meta_title",
+  "meta_description",
+  "keywords",
+  "og_title",
+  "og_description",
+  "og_image",
+  "robots",
+  "sitemap_enabled"
+ ],
+ "fields": [
+  {
+   "fieldname": "website",
+   "fieldtype": "Link",
+   "label": "Website",
+   "options": "Builder Website"
+  },
+  {
+   "fieldname": "meta_title",
+   "fieldtype": "Data",
+   "label": "Meta Title"
+  },
+  {
+   "fieldname": "meta_description",
+   "fieldtype": "Small Text",
+   "label": "Meta Description"
+  },
+  {
+   "fieldname": "keywords",
+   "fieldtype": "JSON",
+   "label": "Keywords"
+  },
+  {
+   "fieldname": "og_title",
+   "fieldtype": "Data",
+   "label": "OG Title"
+  },
+  {
+   "fieldname": "og_description",
+   "fieldtype": "Small Text",
+   "label": "OG Description"
+  },
+  {
+   "fieldname": "og_image",
+   "fieldtype": "Attach Image",
+   "label": "OG Image"
+  },
+  {
+   "fieldname": "robots",
+   "fieldtype": "Attach",
+   "label": "Robots"
+  },
+  {
+   "default": "0",
+   "fieldname": "sitemap_enabled",
+   "fieldtype": "Check",
+   "label": "Sitemap Enabled"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-06-15 10:15:51.148561",
+ "modified_by": "Administrator",
+ "module": "Builder",
+ "name": "Builder Website SEO",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

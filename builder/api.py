@@ -22,6 +22,8 @@ from werkzeug.wrappers import Response
 from builder import builder_analytics
 from builder.builder.doctype.builder_page.builder_page import BuilderPageRenderer
 
+import uuid
+
 
 @frappe.whitelist()
 def get_blocks(prompt):
@@ -350,3 +352,4 @@ def get_codemirror_completions():
 		key="",
 		value=get_safe_globals(),
 	)
+

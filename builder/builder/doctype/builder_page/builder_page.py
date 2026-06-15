@@ -282,6 +282,7 @@ class BuilderPage(WebsiteGenerator):
 		context.page_data = clean_data(context.page_data)
 		try:
 			context["__content"] = render_template(context.__content, context)
+			print("Dòng 285 Render Content: ", context)
 		except TemplateSyntaxError:
 			raise
 

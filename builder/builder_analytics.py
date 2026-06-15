@@ -64,7 +64,6 @@ def setup_duckdb_table(table_name=DUCKDB_TABLE):
 		)
 		print(f"Successfully ingested {len(df)} records into DuckDB")
 
-
 def ingest_web_page_views_to_duckdb(table_name=DUCKDB_TABLE):
 	with DuckDBConnection() as db:
 		table_exists = db.execute(
@@ -144,6 +143,7 @@ def _get_interval_formats(interval):
 
 def _get_aggregated_views_query(where_clause, table_name=DUCKDB_TABLE):
 	"""Get query for total and unique view counts"""
+	print("Dòng 147: ", f"SELECT COUNT(*) as total_views, SUM(is_unique) as unique_views FROM {table_name} WHERE {where_clause}")
 	return f"SELECT COUNT(*) as total_views, SUM(is_unique) as unique_views FROM {table_name} WHERE {where_clause}"
 
 
@@ -224,6 +224,7 @@ def get_page_analytics(
 			rows = db.execute(interval_query).fetchall()
 
 			# Get total views
+			print("Dòng 227: ", table_name)
 			total_query = _get_aggregated_views_query(where_clause, table_name)
 			total_views, total_unique_views = db.execute(total_query).fetchone() or (0, 0)
 
