@@ -15,6 +15,8 @@ class BuilderWebsitePageItem(Document):
 		from frappe.types import DF
 
 		builder_page: DF.Link | None
+		is_blog_detail: DF.Check
+		is_blog_list: DF.Check
 		is_homepage: DF.Check
 		order: DF.Int
 		page_name: DF.Data | None
