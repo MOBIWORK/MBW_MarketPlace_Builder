@@ -1,89 +1,95 @@
 {
-    "actions": [],
-    "allow_rename": 1,
-    "creation": "2026-06-15 09:54:30.750947",
-    "doctype": "DocType",
-    "engine": "InnoDB",
-    "field_order": [
-        "title",
-        "description",
-        "category",
-        "logo",
-        "favicon",
-        "status",
-        "domain",
-        "pages"
-    ],
-    "fields": [
-        {
-            "fieldname": "title",
-            "fieldtype": "Data",
-            "label": "Title"
-        },
-        {
-            "fieldname": "description",
-            "fieldtype": "Small Text",
-            "label": "Description"
-        },
-        {
-            "fieldname": "category",
-            "fieldtype": "Link",
-            "label": "Category",
-            "options": "Builder Website Category"
-        },
-        {
-            "fieldname": "logo",
-            "fieldtype": "Attach",
-            "label": "Logo"
-        },
-        {
-            "fieldname": "favicon",
-            "fieldtype": "Attach",
-            "label": "Favicon"
-        },
-        {
-            "fieldname": "status",
-            "fieldtype": "Select",
-            "label": "Status",
-            "options": "draft\npublished"
-        },
-        {
-            "fieldname": "domain",
-            "fieldtype": "Data",
-            "label": "Domain"
-        },
-        {
-            "fieldname": "pages",
-            "fieldtype": "Table",
-            "label": "Pages",
-            "options": "Builder Website Page Item"
-        }
-    ],
-    "title_field": "title",
-    "grid_page_length": 50,
-    "index_web_pages_for_search": 1,
-    "links": [],
-    "modified": "2026-06-15 10:08:30.778897",
-    "modified_by": "Administrator",
-    "module": "Builder",
-    "name": "Builder Website",
-    "owner": "Administrator",
-    "permissions": [
-        {
-            "create": 1,
-            "delete": 1,
-            "email": 1,
-            "export": 1,
-            "print": 1,
-            "read": 1,
-            "report": 1,
-            "role": "System Manager",
-            "share": 1,
-            "write": 1
-        }
-    ],
-    "row_format": "Dynamic",
-    "sort_field": "modified",
-    "sort_order": "DESC",
-    "states": []
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-06-15 09:54:30.750947",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "description",
+  "thumbnail",
+  "category",
+  "logo",
+  "favicon",
+  "status",
+  "domain",
+  "pages"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Link",
+   "label": "Category",
+   "options": "Builder Website Category"
+  },
+  {
+   "fieldname": "logo",
+   "fieldtype": "Attach",
+   "label": "Logo"
+  },
+  {
+   "fieldname": "favicon",
+   "fieldtype": "Attach",
+   "label": "Favicon"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "draft\npublished"
+  },
+  {
+   "fieldname": "domain",
+   "fieldtype": "Data",
+   "label": "Domain"
+  },
+  {
+   "fieldname": "pages",
+   "fieldtype": "Table",
+   "label": "Pages",
+   "options": "Builder Website Page Item"
+  },
+  {
+   "fieldname": "thumbnail",
+   "fieldtype": "Attach Image",
+   "label": "Thumbnail"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-06-17 08:34:37.287357",
+ "modified_by": "Administrator",
+ "module": "Builder",
+ "name": "Builder Website",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title"
 }

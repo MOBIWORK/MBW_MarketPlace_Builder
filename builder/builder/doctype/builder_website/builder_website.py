@@ -22,6 +22,7 @@ class BuilderWebsite(Document):
 		logo: DF.Attach | None
 		pages: DF.Table[BuilderWebsitePageItem]
 		status: DF.Literal["draft", "published"]
+		thumbnail: DF.AttachImage | None
 		title: DF.Data | None
 	# end: auto-generated types
 	pass
