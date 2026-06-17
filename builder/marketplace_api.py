@@ -29,7 +29,7 @@ def get_website_templates(limit=30, start=0, category=None):
     data = frappe.get_all(
         "Builder Website",
         filters=filters,
-        fields=["name", "title", "description", "thumbnail", "category"],
+        fields=["name", "title", "description", "thumbnail", "category", "preview_url"],
         limit=int(limit),
         start=int(start),
         order_by="modified desc",

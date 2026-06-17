@@ -7,6 +7,7 @@
  "field_order": [
   "title",
   "description",
+  "preview_url",
   "thumbnail",
   "category",
   "logo",
@@ -63,12 +64,17 @@
    "fieldname": "thumbnail",
    "fieldtype": "Attach Image",
    "label": "Thumbnail"
+  },
+  {
+   "fieldname": "preview_url",
+   "fieldtype": "Data",
+   "label": "Preview Url"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-17 08:34:37.287357",
+ "modified": "2026-06-17 14:08:58.653685",
  "modified_by": "Administrator",
  "module": "Builder",
  "name": "Builder Website",

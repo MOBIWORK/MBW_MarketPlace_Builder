@@ -21,6 +21,7 @@ class BuilderWebsite(Document):
 		favicon: DF.Attach | None
 		logo: DF.Attach | None
 		pages: DF.Table[BuilderWebsitePageItem]
+		preview_url: DF.Data | None
 		status: DF.Literal["draft", "published"]
 		thumbnail: DF.AttachImage | None
 		title: DF.Data | None
