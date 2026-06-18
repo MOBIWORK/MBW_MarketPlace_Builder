@@ -1,0 +1,67 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-06-18 14:11:42.029237",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "salary",
+  "remote",
+  "location",
+  "deadline"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "V\u1ecb tr\u00ed tuy\u1ec3n d\u1ee5ng"
+  },
+  {
+   "fieldname": "salary",
+   "fieldtype": "Data",
+   "label": "L\u01b0\u01a1ng"
+  },
+  {
+   "fieldname": "remote",
+   "fieldtype": "Data",
+   "label": "Lo\u1ea1i h\u00ecnh"
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "label": "\u0110\u1ecba ch\u1ec9"
+  },
+  {
+   "fieldname": "deadline",
+   "fieldtype": "Data",
+   "label": "Th\u1eddi h\u1ea1n"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-06-18 14:14:01.246204",
+ "modified_by": "Administrator",
+ "module": "Builder",
+ "name": "Builder Job Opening",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

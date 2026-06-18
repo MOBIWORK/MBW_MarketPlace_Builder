@@ -124,6 +124,7 @@ def _build_pages_list(page_items):
     """
     pages = []
     for item in sorted(page_items, key=lambda x: x.order or 0):
+        builder_page_info = frappe.get_doc("Builder Page", item.builder_page)
         page_data = {
             "page_name": item.page_name,
             "builder_page": item.builder_page,
@@ -135,7 +136,10 @@ def _build_pages_list(page_items):
             "blocks": None,
             "draft_blocks": None,
             "is_job_list": item.is_job_list,
-            "is_job_detail": item.is_job_detail
+            "is_job_detail": item.is_job_detail,
+            "page_data_script": builder_page_info.page_data_script,
+            "head_html": builder_page_info.head_html,
+            "body_html": builder_page_info.body_html
         }
 
         if item.builder_page:
