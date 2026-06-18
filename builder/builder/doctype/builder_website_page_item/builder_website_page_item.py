@@ -18,6 +18,7 @@ class BuilderWebsitePageItem(Document):
 		is_blog_detail: DF.Check
 		is_blog_list: DF.Check
 		is_homepage: DF.Check
+		is_job_detail: DF.Check
 		is_job_list: DF.Check
 		order: DF.Int
 		page_name: DF.Data | None

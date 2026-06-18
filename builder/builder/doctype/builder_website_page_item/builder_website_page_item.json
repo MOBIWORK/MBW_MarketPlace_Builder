@@ -12,7 +12,8 @@
   "status",
   "is_blog_detail",
   "is_blog_list",
-  "is_job_list"
+  "is_job_list",
+  "is_job_detail"
  ],
  "fields": [
   {
@@ -60,13 +61,19 @@
    "fieldname": "is_job_list",
    "fieldtype": "Check",
    "label": "Is Job List"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_job_detail",
+   "fieldtype": "Check",
+   "label": "Is Job Detail"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-06-17 14:12:09.668851",
+ "modified": "2026-06-18 08:23:06.277062",
  "modified_by": "Administrator",
  "module": "Builder",
  "name": "Builder Website Page Item",

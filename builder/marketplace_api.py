@@ -134,6 +134,8 @@ def _build_pages_list(page_items):
             "is_blog_list": item.is_blog_list,
             "blocks": None,
             "draft_blocks": None,
+            "is_job_list": item.is_job_list,
+            "is_job_detail": item.is_job_detail
         }
 
         if item.builder_page:
