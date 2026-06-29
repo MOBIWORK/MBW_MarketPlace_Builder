@@ -35,6 +35,9 @@ def get_website_templates(limit=30, start=0, category=None):
         order_by="modified desc",
     )
 
+    for row in data:
+        row["thumbnail"] = _absolute_url(row.get("thumbnail"))
+
     total_count = frappe.db.count("Builder Website", filters=filters)
 
     return {"data": data, "total_count": total_count}
@@ -65,10 +68,10 @@ def get_website_detail(website_id):
         "name": website.name,
         "title": website.title,
         "description": website.description,
-        "thumbnail": website.thumbnail,
+        "thumbnail": _absolute_url(website.thumbnail),
         "category": website.category,
-        "logo": website.logo,
-        "favicon": website.favicon,
+        "logo": _absolute_url(website.logo),
+        "favicon": _absolute_url(website.favicon),
         "status": website.status,
         "domain": website.domain,
     }
@@ -107,6 +110,25 @@ def get_website_categories(limit=100, start=0):
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
+
+def _absolute_url(path):
+    """Convert a stored file path to an absolute URL.
+
+    Builder stores attachments as site-relative paths (e.g.
+    ``files/thumbnail.jpeg`` or ``/files/thumbnail.jpeg``). These cannot be
+    resolved by an external consumer, so prepend the site URL. Values that are
+    already absolute (http/https) or empty are returned unchanged.
+
+    Args:
+        path (str | None): Stored file path.
+
+    Returns:
+        str | None: Absolute URL or the original value if empty/absolute.
+    """
+    if not path or path.startswith(("http://", "https://", "//")):
+        return path
+    return frappe.utils.get_url(path if path.startswith("/") else f"/{path}")
 
 
 def _build_pages_list(page_items):
@@ -186,7 +208,7 @@ def _fetch_seo(website_id):
         "keywords": frappe.parse_json(doc.keywords) if doc.keywords else None,
         "og_title": doc.og_title,
         "og_description": doc.og_description,
-        "og_image": doc.og_image,
+        "og_image": _absolute_url(doc.og_image),
         "robots": doc.robots,
         "sitemap_enabled": doc.sitemap_enabled,
     }

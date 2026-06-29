@@ -8,11 +8,17 @@ def fc_call(method: str, **params):
 
 	import requests
 
+	frappe.error_log(f"base_url: {get_base_url()}", "fc_call")
+	frappe.error_log(f"headers: {get_headers()}", "fc_call")
+	frappe.error_log(f"params: {params}", "fc_call")
+
 	response = requests.post(
 		f"{get_base_url()}/api/method/press.saas.api.domain.{method}",
 		headers=get_headers(),
 		json=params or None,
 	)
+
+	frappe.error_log(f"response: {response.status_code} - {response.text}", "fc_call")
 
 	if response.status_code != 200:
 		import json as _json
