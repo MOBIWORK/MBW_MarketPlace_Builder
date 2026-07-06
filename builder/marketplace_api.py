@@ -107,6 +107,23 @@ def get_website_categories(limit=100, start=0):
     return {"data": data, "total_count": total_count}
 
 
+@frappe.whitelist(allow_guest=True)
+def get_builder_variables():
+    """Return the full list of Builder Variable records (global design tokens).
+
+    Builder Variable is not linked to a specific website; the records form a
+    shared list of design tokens (colors and dimensions). This endpoint is
+    intended for the AI service, which needs the complete set at once, so it
+    returns every record with no pagination.
+
+    Returns:
+        dict: {data: [...], total_count: int}
+    """
+    data = _fetch_variables()
+
+    return {"data": data, "total_count": len(data)}
+
+
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
@@ -186,6 +203,22 @@ def _fetch_builder_page_blocks(builder_page_name):
         "blocks": frappe.parse_json(doc.blocks) if doc.blocks else None,
         "draft_blocks": frappe.parse_json(doc.draft_blocks) if doc.draft_blocks else None,
     }
+
+
+def _fetch_variables():
+    """Fetch all Builder Variable records (global design tokens).
+
+    Builder Variable is not linked to a specific website; the records form a
+    shared list of design tokens (colors and dimensions) consumed by templates.
+
+    Returns:
+        list[dict]
+    """
+    return frappe.get_all(
+        "Builder Variable",
+        fields=["name", "variable_name", "group", "type", "value", "dark_value", "is_standard"],
+        order_by="group asc, variable_name asc",
+    )
 
 
 def _fetch_seo(website_id):
