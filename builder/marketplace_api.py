@@ -217,7 +217,7 @@ def _fetch_variables():
     return frappe.get_all(
         "Builder Variable",
         fields=["name", "variable_name", "group", "type", "value", "dark_value", "is_standard"],
-        order_by="group asc, variable_name asc",
+        order_by="`group` asc, variable_name asc",
     )
 
 
