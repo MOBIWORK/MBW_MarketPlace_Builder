@@ -17,7 +17,12 @@ class Template(Document):
 		builder_page: DF.Link | None
 		description: DF.SmallText | None
 		industry: DF.Link | None
+		is_blog_detail: DF.Check
+		is_blog_list: DF.Check
 		is_featured: DF.Check
+		is_homepage: DF.Check
+		is_job_detail: DF.Check
+		is_job_list: DF.Check
 		purpose: DF.Literal["Recruitment", "Marketing", "Website"]
 		sort_order: DF.Int
 		status: DF.Literal["Draft", "Published", "Archived"]

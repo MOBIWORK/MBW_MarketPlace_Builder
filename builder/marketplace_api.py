@@ -124,6 +124,109 @@ def get_builder_variables():
     return {"data": data, "total_count": len(data)}
 
 
+# Template field -> Builder Page field. Khi trường của Template trống thì lấy
+# giá trị tương ứng từ Builder Page được liên kết qua `builder_page`.
+TEMPLATE_FALLBACK_FIELDS = {
+    "title": "page_title",
+    "thumbnail": "preview",
+    "description": "meta_description",
+}
+
+
+@frappe.whitelist(allow_guest=True)
+def get_page_templates(limit=30, start=0, title=None, industry="All", purpose=None):
+    """Return a paginated list of single-page templates with optional filters.
+
+    Unlike ``get_website_templates`` (which lists multi-page Builder Website
+    templates), this lists ``Template`` records — templates for a single page.
+
+    Args:
+        limit (int): Number of records to fetch. Default 30.
+        start (int): Offset for pagination. Default 0.
+        title (str | None): Filter by title (partial match).
+        industry (str): Filter by Template Industry name. "All" (default)
+            fetches every industry.
+        purpose (str | None): Filter by purpose (Recruitment / Marketing /
+            Website).
+
+    Returns:
+        dict: {data: [...], total_count: int}. For each template, any empty
+        field listed in TEMPLATE_FALLBACK_FIELDS is filled from the linked
+        Builder Page.
+    """
+    filters = {}
+    if title:
+        filters["title"] = ["like", f"%{title}%"]
+    if industry and industry != "All":
+        filters["industry"] = industry
+    if purpose:
+        filters["purpose"] = purpose
+
+    data = frappe.get_all(
+        "Template",
+        filters=filters,
+        fields=[
+            "name",
+            "title",
+            "builder_page",
+            "purpose",
+            "industry",
+            "thumbnail",
+            "description",
+            "status",
+            "is_featured",
+            "is_homepage",
+            "is_blog_detail",
+            "is_blog_list",
+            "is_job_list",
+            "is_job_detail",
+            "sort_order",
+        ],
+        limit=int(limit),
+        start=int(start),
+        order_by="sort_order asc, modified desc",
+    )
+
+    _apply_builder_page_fallback(data)
+
+    for row in data:
+        row["thumbnail"] = _absolute_url(row.get("thumbnail"))
+
+    total_count = frappe.db.count("Template", filters=filters)
+
+    return {"data": data, "total_count": total_count}
+
+
+@frappe.whitelist(allow_guest=True)
+def get_page_template_industries(purpose=None):
+    """Return the list of enabled template industries, optionally by purpose.
+
+    Args:
+        purpose (str | None): Filter by purpose (Recruitment / Marketing /
+            Website). Empty or "All" fetches every industry.
+
+    Returns:
+        dict: {data: [...], total_count: int}, ordered by sort_order.
+    """
+    filters = {"enabled": 1}
+    if purpose and purpose != "All":
+        filters["purpose"] = purpose
+
+    data = frappe.get_all(
+        "Template Industry",
+        filters=filters,
+        fields=["name", "title", "purpose", "icon", "description", "sort_order"],
+        order_by="sort_order asc, title asc",
+    )
+
+    for row in data:
+        row["icon"] = _absolute_url(row.get("icon"))
+
+    total_count = frappe.db.count("Template Industry", filters=filters)
+
+    return {"data": data, "total_count": total_count}
+
+
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
@@ -146,6 +249,37 @@ def _absolute_url(path):
     if not path or path.startswith(("http://", "https://", "//")):
         return path
     return frappe.utils.get_url(path if path.startswith("/") else f"/{path}")
+
+
+def _apply_builder_page_fallback(templates):
+    """Fill empty template fields from the linked Builder Page.
+
+    For each template with a `builder_page`, any field listed in
+    TEMPLATE_FALLBACK_FIELDS that is empty gets the corresponding value from
+    the Builder Page. Builder Pages are fetched in a single query to avoid an
+    N+1 lookup.
+
+    Args:
+        templates (list[dict]): rows to mutate in place.
+    """
+    page_names = list({t["builder_page"] for t in templates if t.get("builder_page")})
+    if not page_names:
+        return
+
+    pages = frappe.get_all(
+        "Builder Page",
+        filters={"name": ["in", page_names]},
+        fields=["name", *TEMPLATE_FALLBACK_FIELDS.values()],
+    )
+    page_map = {p["name"]: p for p in pages}
+
+    for template in templates:
+        page = page_map.get(template.get("builder_page"))
+        if not page:
+            continue
+        for tpl_field, page_field in TEMPLATE_FALLBACK_FIELDS.items():
+            if not template.get(tpl_field):
+                template[tpl_field] = page.get(page_field)
 
 
 def _build_pages_list(page_items):

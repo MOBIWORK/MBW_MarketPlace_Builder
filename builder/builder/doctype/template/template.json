@@ -13,6 +13,11 @@
   "description",
   "status",
   "is_featured",
+  "is_homepage",
+  "is_blog_detail",
+  "is_blog_list",
+  "is_job_list",
+  "is_job_detail",
   "sort_order"
  ],
  "fields": [
@@ -66,6 +71,36 @@
    "fieldname": "is_featured",
    "fieldtype": "Check",
    "label": "Is Featured"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_homepage",
+   "fieldtype": "Check",
+   "label": "Is Homepage"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_blog_detail",
+   "fieldtype": "Check",
+   "label": "Is Blog Detail"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_blog_list",
+   "fieldtype": "Check",
+   "label": "Is Blog List"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_job_list",
+   "fieldtype": "Check",
+   "label": "Is Job List"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_job_detail",
+   "fieldtype": "Check",
+   "label": "Is Job Detail"
   },
   {
    "default": "0",
