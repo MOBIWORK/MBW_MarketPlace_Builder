@@ -16,6 +16,8 @@ class BuilderWebsite(Document):
 		from frappe.types import DF
 
 		category: DF.Link | None
+		content_angle: DF.SmallText | None
+		conversion_goal: DF.SmallText | None
 		description: DF.SmallText | None
 		domain: DF.Data | None
 		favicon: DF.Attach | None
@@ -23,6 +25,7 @@ class BuilderWebsite(Document):
 		pages: DF.Table[BuilderWebsitePageItem]
 		preview_url: DF.Data | None
 		status: DF.Literal["draft", "published"]
+		target_audience: DF.SmallText | None
 		thumbnail: DF.AttachImage | None
 		title: DF.Data | None
 	# end: auto-generated types

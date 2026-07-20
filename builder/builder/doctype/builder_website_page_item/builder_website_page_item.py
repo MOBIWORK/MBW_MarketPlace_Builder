@@ -25,6 +25,8 @@ class BuilderWebsitePageItem(Document):
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
+		purpose: DF.SmallText | None
+		sections_page: DF.JSON | None
 		status: DF.Literal["draft", "published"]
 	# end: auto-generated types
 	pass

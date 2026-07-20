@@ -14,7 +14,10 @@
   "favicon",
   "status",
   "domain",
-  "pages"
+  "pages",
+  "target_audience",
+  "conversion_goal",
+  "content_angle"
  ],
  "fields": [
   {
@@ -69,12 +72,27 @@
    "fieldname": "preview_url",
    "fieldtype": "Data",
    "label": "Preview Url"
+  },
+  {
+   "fieldname": "target_audience",
+   "fieldtype": "Small Text",
+   "label": "Target Audience"
+  },
+  {
+   "fieldname": "conversion_goal",
+   "fieldtype": "Small Text",
+   "label": "Conversion Goal"
+  },
+  {
+   "fieldname": "content_angle",
+   "fieldtype": "Small Text",
+   "label": "Content Angle"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-17 14:08:58.653685",
+ "modified": "2026-07-20 10:49:39.959420",
  "modified_by": "Administrator",
  "module": "Builder",
  "name": "Builder Website",

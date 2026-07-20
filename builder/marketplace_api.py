@@ -84,6 +84,36 @@ def get_website_detail(website_id):
 
 
 @frappe.whitelist(allow_guest=True)
+def get_website_content_brief(website_id):
+    """Return the content brief (AI generation spec) of a website template.
+
+    Unlike ``get_website_detail`` (which returns rendered blocks), this returns
+    only the editorial intent: who the site targets, what it should convert,
+    the content angle, and the per-page section outline. It is the input an AI
+    service needs to generate copy for the template.
+
+    Args:
+        website_id (str): The `name` (ID) of the Builder Website document.
+
+    Returns:
+        dict: {template_id, target_audience, conversion_goal, content_angle,
+        pages: [{slug, title, purpose, sections}]}
+    """
+    if not website_id:
+        frappe.throw("Tham số 'website_id' là bắt buộc.", frappe.MandatoryError)
+
+    website = frappe.get_doc("Builder Website", website_id)
+
+    return {
+        "template_id": website.name,
+        "target_audience": website.target_audience,
+        "conversion_goal": website.conversion_goal,
+        "content_angle": website.content_angle,
+        "pages": _build_content_brief_pages(website.pages),
+    }
+
+
+@frappe.whitelist(allow_guest=True)
 def get_website_categories(limit=100, start=0):
     """Return a paginated list of website categories.
 
@@ -321,6 +351,64 @@ def _build_pages_list(page_items):
         pages.append(page_data)
 
     return pages
+
+
+def _build_content_brief_pages(page_items):
+    """Build the `pages` outline of a content brief from child table rows.
+
+    The slug of each page comes from the linked Builder Page's `route`; the
+    routes are fetched in a single query to avoid an N+1 lookup. Rows are
+    ordered by `order` and their `sections_page` JSON is parsed so consumers
+    get real objects instead of a string.
+
+    Args:
+        page_items (list): child table rows from Builder Website.pages
+
+    Returns:
+        list[dict]: [{slug, title, purpose, sections}]
+    """
+    page_names = list({i.builder_page for i in page_items if i.builder_page})
+    route_map = {}
+    if page_names:
+        route_map = {
+            p["name"]: p["route"]
+            for p in frappe.get_all(
+                "Builder Page",
+                filters={"name": ["in", page_names]},
+                fields=["name", "route"],
+            )
+        }
+
+    pages = []
+    for item in sorted(page_items, key=lambda x: x.order or 0):
+        pages.append(
+            {
+                "slug": _to_slug(route_map.get(item.builder_page), item.is_homepage),
+                "title": item.page_name,
+                "purpose": item.purpose,
+                "sections": frappe.parse_json(item.sections_page) if item.sections_page else [],
+            }
+        )
+
+    return pages
+
+
+def _to_slug(route, is_homepage=False):
+    """Normalise a Builder Page route into a leading-slash slug.
+
+    Builder stores routes without a leading slash (e.g. ``about``) and the
+    homepage may have an empty route. The brief expects ``/about`` and ``/``.
+
+    Args:
+        route (str | None): Stored Builder Page route.
+        is_homepage (bool): Whether the page item is flagged as the homepage.
+
+    Returns:
+        str: Slug beginning with "/".
+    """
+    if not route:
+        return "/" if is_homepage else None
+    return route if route.startswith("/") else f"/{route}"
 
 
 def _fetch_builder_page_blocks(builder_page_name):
