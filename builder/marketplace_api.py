@@ -83,7 +83,7 @@ def get_website_detail(website_id):
     return {"website_info": website_info, "pages": pages, "seo_info": seo_info}
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["GET"])
 def get_website_content_brief(website_id):
     """Return the content brief (AI generation spec) of a website template.
 
