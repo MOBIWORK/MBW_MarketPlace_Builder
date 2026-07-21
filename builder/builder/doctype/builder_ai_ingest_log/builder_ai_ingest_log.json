@@ -1,0 +1,122 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "creation": "2026-07-21 09:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "website",
+  "status",
+  "attempts",
+  "column_break_trigger",
+  "trigger_doctype",
+  "trigger_docname",
+  "section_break_request",
+  "request_payload",
+  "section_break_response",
+  "response_status",
+  "response_body",
+  "error"
+ ],
+ "fields": [
+  {
+   "fieldname": "website",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Website",
+   "search_index": 1
+  },
+  {
+   "default": "Pending",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Pending\nSuccess\nFailed",
+   "search_index": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "attempts",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Attempts"
+  },
+  {
+   "fieldname": "column_break_trigger",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "trigger_doctype",
+   "fieldtype": "Data",
+   "label": "Trigger Doctype"
+  },
+  {
+   "fieldname": "trigger_docname",
+   "fieldtype": "Data",
+   "label": "Trigger Docname"
+  },
+  {
+   "fieldname": "section_break_request",
+   "fieldtype": "Section Break",
+   "label": "Request"
+  },
+  {
+   "fieldname": "request_payload",
+   "fieldtype": "Code",
+   "label": "Request Payload",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "section_break_response",
+   "fieldtype": "Section Break",
+   "label": "Response"
+  },
+  {
+   "fieldname": "response_status",
+   "fieldtype": "Int",
+   "label": "Response Status"
+  },
+  {
+   "fieldname": "response_body",
+   "fieldtype": "Code",
+   "label": "Response Body"
+  },
+  {
+   "fieldname": "error",
+   "fieldtype": "Small Text",
+   "label": "Error"
+  }
+ ],
+ "grid_page_length": 50,
+ "in_create": 1,
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-07-21 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Builder",
+ "name": "Builder AI Ingest Log",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "website",
+ "track_changes": 0
+}
