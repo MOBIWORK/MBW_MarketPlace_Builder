@@ -106,17 +106,13 @@ after_app_install = "builder.install.after_app_install"
 # ---------------
 # Hook on document methods and events
 
-# Builder Website Page Item không cần hook: là child table nên mọi thay đổi
-# đều đi qua on_update của Builder Website.
-doc_events = {
-	"Builder Website": {
-		"on_update": "builder.ai_ingest.on_website_update",
-	},
-	"Builder Page": {
-		"on_update": "builder.ai_ingest.on_page_update",
-		"on_trash": "builder.ai_ingest.on_page_trash",
-	},
-}
+# doc_events = {
+# "*": {
+# "on_update": "method",
+# "on_cancel": "method",
+# "on_trash": "method"
+# }
+# }
 
 # Scheduled Tasks
 # ---------------
@@ -125,9 +121,6 @@ scheduler_events = {
 	"cron": {
 		"*/10 * * * *": [
 			"builder.builder_analytics.ingest_web_page_views_to_duckdb",
-		],
-		"0 * * * *": [
-			"builder.ai_ingest.retry_failed_ingests",
 		],
 	},
 	"monthly": [

@@ -1,180 +1,128 @@
 """Đồng bộ mẫu website sang dịch vụ AI.
 
-Khi mẫu website thay đổi, đẩy website_id sang dịch vụ AI để nó tự gọi ngược
-lại các endpoint trong marketplace_api.py mà lấy dữ liệu mới.
+Người dùng chủ động bấm đồng bộ thay vì chạy tự động theo doc_events: dữ liệu
+AI học là nội dung biên tập, thường được sửa qua nhiều lần lưu, nên để người
+dùng chọn thời điểm "mẫu đã xong" là hợp lý hơn đẩy mọi bản nháp sang AI.
 
-Chống gọi trùng theo 3 lớp:
-1. Builder Website Page Item là child table nên Frappe không chạy doc_events
-   riêng cho nó — sửa danh sách trang chỉ sinh 1 lần on_update ở website cha.
-2. Builder Page chỉ kích hoạt khi các field trong PAGE_WATCHED_FIELDS đổi;
-   draft_blocks cố tình nằm ngoài vì trình editor autosave liên tục.
-3. Trong cùng request dùng frappe.flags, giữa các request dùng job_id +
-   deduplicate của hàng đợi.
+Chỉ gửi website_id; dịch vụ AI tự gọi ngược lại các endpoint trong
+marketplace_api.py để lấy dữ liệu.
 
 File này nằm cạnh core, không sửa file core nào, nên merge upstream không xung đột.
 """
 
 import frappe
+import requests
 
 INGEST_PATH = "/builder_agent/api/v1/templates/ingest/batch"
-REQUEST_TIMEOUT = 30
-MAX_ATTEMPTS = 3
-
-# Field của Builder Page ảnh hưởng tới dữ liệu AI học. draft_blocks bị loại
-# vì editor autosave liên tục, đưa vào sẽ spam dịch vụ AI.
-PAGE_WATCHED_FIELDS = ("route", "blocks", "page_title", "published")
+REQUEST_TIMEOUT = 60
 
 
-def on_website_update(doc, method=None):
-	if skip_ingest():
-		return
-	mark_for_ingest(doc.name, doc.doctype, doc.name)
+@frappe.whitelist()
+def sync_websites(website_ids):
+	"""Đẩy một hoặc nhiều mẫu website sang dịch vụ AI trong 1 request.
 
+	Args:
+		website_ids (str | list): tên Builder Website, hoặc chuỗi JSON của danh
+			sách tên khi gọi từ giao diện.
 
-def on_page_update(doc, method=None):
-	if skip_ingest():
-		return
-	if not any(doc.has_value_changed(field) for field in PAGE_WATCHED_FIELDS):
-		return
-	mark_page_website_for_ingest(doc)
-
-
-def on_page_trash(doc, method=None):
-	if skip_ingest():
-		return
-	mark_page_website_for_ingest(doc)
-
-
-def mark_page_website_for_ingest(page):
-	website_id = find_website_of_page(page.name)
-	if website_id:
-		mark_for_ingest(website_id, page.doctype, page.name)
-
-
-def find_website_of_page(page_name):
-	"""Tra ngược Builder Page về Builder Website qua child table.
-
-	Trả None khi trang không thuộc website nào — trang lẻ thì không đồng bộ.
+	Returns:
+		dict: {synced: [...], skipped: [...]} — skipped là các mẫu chưa published.
 	"""
-	return frappe.db.get_value(
-		"Builder Website Page Item",
-		{"builder_page": page_name, "parenttype": "Builder Website"},
-		"parent",
+	frappe.only_for("System Manager")
+
+	requested = parse_website_ids(website_ids)
+	if not requested:
+		frappe.throw("Chưa chọn mẫu website nào để đồng bộ.")
+
+	published = filter_published(requested)
+	skipped = [name for name in requested if name not in published]
+
+	if published:
+		send_batch(published)
+
+	return {"synced": published, "skipped": skipped}
+
+
+def parse_website_ids(website_ids):
+	if isinstance(website_ids, str):
+		website_ids = frappe.parse_json(website_ids)
+	if isinstance(website_ids, str):
+		website_ids = [website_ids]
+	return list(dict.fromkeys(website_ids or []))
+
+
+def filter_published(website_ids):
+	"""Giữ nguyên thứ tự người dùng chọn, bỏ các mẫu chưa published."""
+	published = set(
+		frappe.get_all(
+			"Builder Website",
+			filters={"name": ["in", website_ids], "status": "published"},
+			pluck="name",
+		)
 	)
+	return [name for name in website_ids if name in published]
 
 
-def skip_ingest():
-	"""Bỏ qua trong các tiến trình hệ thống.
+def send_batch(website_ids):
+	"""Gửi 1 request cho cả lô rồi ghi vết cho từng mẫu.
 
-	Thiếu guard này thì một lần bench migrate sẽ bắn hàng loạt request.
+	Lỗi kết nối được ném lên để người dùng thấy ngay tại chỗ — đây là hành
+	động thủ công nên phản hồi tức thì quan trọng hơn việc nuốt lỗi.
 	"""
-	flags = frappe.flags
-	return bool(
-		flags.in_migrate or flags.in_install or flags.in_patch or flags.in_test or flags.in_import
-	)
+	base_url, token = get_ai_config()
+	payload = {"items": [{"website_id": name} for name in website_ids]}
+
+	try:
+		response = requests.post(
+			f"{base_url}{INGEST_PATH}",
+			headers={"Authorization": f"Bearer {token}"},
+			json=payload,
+			timeout=REQUEST_TIMEOUT,
+		)
+	except Exception as exc:
+		log_batch(website_ids, payload, error=frappe.get_traceback(with_context=False))
+		frappe.throw(f"Không gọi được dịch vụ AI: {exc}")
+
+	log_batch(website_ids, payload, response=response)
+
+	if not response.ok:
+		frappe.throw(f"Dịch vụ AI trả về lỗi {response.status_code}: {response.text[:500]}")
 
 
-def mark_for_ingest(website_id, trigger_doctype, trigger_docname):
-	if not is_published(website_id):
-		return
-	if not get_ai_config():
-		return
-	if queued_in_this_request(website_id):
-		return
-
-	frappe.enqueue(
-		"builder.ai_ingest.push_website",
-		queue="short",
-		job_id=f"ai-ingest::{website_id}",
-		deduplicate=True,
-		enqueue_after_commit=True,
-		website_id=website_id,
-		trigger_doctype=trigger_doctype,
-		trigger_docname=trigger_docname,
-	)
-
-
-def is_published(website_id):
-	return frappe.db.get_value("Builder Website", website_id, "status") == "published"
-
-
-def queued_in_this_request(website_id):
-	queued = frappe.flags.setdefault("ai_ingest_queued", set())
-	if website_id in queued:
-		return True
-	queued.add(website_id)
-	return False
-
-
-def push_website(website_id, trigger_doctype=None, trigger_docname=None):
-	log = frappe.new_doc("Builder AI Ingest Log")
-	log.website = website_id
-	log.trigger_doctype = trigger_doctype
-	log.trigger_docname = trigger_docname
-	log.insert(ignore_permissions=True)
-	log.send_to_ai()
+def log_batch(website_ids, payload, response=None, error=None):
+	"""Ghi 1 dòng log cho mỗi mẫu để lọc được theo website."""
+	for name in website_ids:
+		frappe.get_doc(
+			{
+				"doctype": "Builder AI Ingest Log",
+				"website": name,
+				"request_payload": frappe.as_json(payload),
+			}
+		).record(response=response, error=error)
 
 
 def get_ai_config():
-	"""Đọc cấu hình dịch vụ AI từ site_config.json.
-
-	Trả None khi chưa cấu hình để việc lưu website vẫn chạy bình thường trên
-	máy dev — không được để thiếu config làm vỡ thao tác save.
-	"""
 	base_url = frappe.conf.get("base_url_ai")
 	token = frappe.conf.get("bear_auth_ai")
 	if not base_url or not token:
-		return None
+		frappe.throw("Chưa cấu hình base_url_ai và bear_auth_ai trong site_config.json.")
 	return base_url.rstrip("/"), token
 
 
 @frappe.whitelist()
-def resync_website(website_id):
-	"""Ép đồng bộ lại một website, bỏ qua mọi lớp chống trùng."""
-	frappe.only_for("System Manager")
-	if not get_ai_config():
-		frappe.throw("Chưa cấu hình base_url_ai và bear_auth_ai trong site_config.json.")
-
-	frappe.enqueue(
-		"builder.ai_ingest.push_website",
-		queue="short",
-		website_id=website_id,
-		trigger_doctype="Manual",
-		trigger_docname=frappe.session.user,
-	)
-	return "queued"
-
-
-def retry_failed_ingests():
-	"""Thử lại các lần đồng bộ hỏng, chạy theo lịch mỗi giờ."""
-	if not get_ai_config():
-		return
-
-	names = frappe.get_all(
+def get_last_sync(website_id):
+	"""Lần đồng bộ gần nhất của một mẫu, để hiển thị trên form."""
+	logs = frappe.get_all(
 		"Builder AI Ingest Log",
-		filters={"status": "Failed", "attempts": ["<", MAX_ATTEMPTS]},
-		pluck="name",
-		order_by="creation asc",
-		limit=50,
+		filters={"website": website_id},
+		fields=["status", "creation", "triggered_by"],
+		order_by="creation desc",
+		limit=1,
 	)
-	for name in names:
-		frappe.get_doc("Builder AI Ingest Log", name).send_to_ai()
+	return logs[0] if logs else None
 
 
 def cleanup_old_logs():
-	"""Xóa log của các tháng trước, chạy theo lịch đầu mỗi tháng.
-
-	Giữ lại bản ghi Failed còn hạn thử lại để không mất các lần đồng bộ hỏng.
-	"""
+	"""Xóa log của các tháng trước, chạy theo lịch đầu mỗi tháng."""
 	first_day_of_month = frappe.utils.get_first_day(frappe.utils.nowdate())
-	logs = frappe.get_all(
-		"Builder AI Ingest Log",
-		filters={"creation": ["<", first_day_of_month]},
-		or_filters=[
-			["status", "=", "Success"],
-			["attempts", ">=", MAX_ATTEMPTS],
-		],
-		pluck="name",
-	)
-	for name in logs:
-		frappe.delete_doc("Builder AI Ingest Log", name, force=True, ignore_permissions=True)
+	frappe.db.delete("Builder AI Ingest Log", {"creation": ["<", first_day_of_month]})

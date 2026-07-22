@@ -9,10 +9,8 @@
  "field_order": [
   "website",
   "status",
-  "attempts",
   "column_break_trigger",
-  "trigger_doctype",
-  "trigger_docname",
+  "triggered_by",
   "section_break_request",
   "request_payload",
   "section_break_response",
@@ -30,35 +28,23 @@
    "search_index": 1
   },
   {
-   "default": "Pending",
    "fieldname": "status",
    "fieldtype": "Select",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "Pending\nSuccess\nFailed",
-   "search_index": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "attempts",
-   "fieldtype": "Int",
-   "in_list_view": 1,
-   "label": "Attempts"
+   "options": "Success\nFailed"
   },
   {
    "fieldname": "column_break_trigger",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "trigger_doctype",
-   "fieldtype": "Data",
-   "label": "Trigger Doctype"
-  },
-  {
-   "fieldname": "trigger_docname",
-   "fieldtype": "Data",
-   "label": "Trigger Docname"
+   "fieldname": "triggered_by",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Triggered By",
+   "options": "User"
   },
   {
    "fieldname": "section_break_request",
