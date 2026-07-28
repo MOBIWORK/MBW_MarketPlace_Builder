@@ -100,6 +100,10 @@ def log_batch(website_ids, payload, response=None, error=None):
 			}
 		).record(response=response, error=error)
 
+@frappe.whitelist(methods=["POST"], allow_guest=True)
+def defined_hook():
+	payload = frappe.local.form_dict
+	print(payload)
 
 def get_ai_config():
 	base_url = frappe.conf.get("base_url_ai")

@@ -340,6 +340,10 @@ def _build_pages_list(page_items):
             "draft_blocks": None,
             "is_job_list": item.is_job_list,
             "is_job_detail": item.is_job_detail,
+            "is_thank_you": item.is_thank_you,
+            "is_not_found": item.is_not_found,
+            "is_privacy_policy": item.is_privacy_policy,
+            "is_terms_of_service": item.is_terms_of_service,
             "page_data_script": builder_page_info.page_data_script,
             "head_html": builder_page_info.head_html,
             "body_html": builder_page_info.body_html

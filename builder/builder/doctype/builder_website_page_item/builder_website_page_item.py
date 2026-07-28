@@ -20,6 +20,10 @@ class BuilderWebsitePageItem(Document):
 		is_homepage: DF.Check
 		is_job_detail: DF.Check
 		is_job_list: DF.Check
+		is_not_found: DF.Check
+		is_privacy_policy: DF.Check
+		is_terms_of_service: DF.Check
+		is_thank_you: DF.Check
 		order: DF.Int
 		page_name: DF.Data | None
 		parent: DF.Data
