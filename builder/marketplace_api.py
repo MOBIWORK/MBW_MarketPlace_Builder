@@ -160,6 +160,7 @@ TEMPLATE_FALLBACK_FIELDS = {
     "title": "page_title",
     "thumbnail": "preview",
     "description": "meta_description",
+    "route": "route"
 }
 
 
@@ -221,6 +222,7 @@ def get_page_templates(limit=30, start=0, title=None, industry="All", purpose=No
 
     for row in data:
         row["thumbnail"] = _absolute_url(row.get("thumbnail"))
+        row["route"] = _absolute_url(row.get("route"))
 
     total_count = frappe.db.count("Template", filters=filters)
 
