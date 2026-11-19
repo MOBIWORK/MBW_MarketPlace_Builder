@@ -26,7 +26,10 @@ function sync_to_ai(frm) {
 		freeze: true,
 		freeze_message: __("Đang gửi sang dịch vụ AI..."),
 		callback: () => {
-			frappe.show_alert({ message: __("Đã đồng bộ sang AI"), indicator: "green" });
+			frappe.show_alert({
+				message: __("Đã gửi sang AI, đang chờ xử lý"),
+				indicator: "blue",
+			});
 			show_last_sync(frm);
 		},
 	});
@@ -43,12 +46,13 @@ function show_last_sync(frm) {
 			}
 
 			const when = frappe.datetime.prettyDate(message.creation);
-			const label =
-				message.status === "Success"
-					? __("Đồng bộ AI thành công {0}", [when])
-					: __("Lần đồng bộ AI gần nhất thất bại ({0})", [when]);
+			const labels = {
+				Pending: __("Đã gửi sang AI {0}, đang chờ kết quả.", [when]),
+				Success: __("Đồng bộ AI thành công {0}", [when]),
+				Failed: __("Lần đồng bộ AI gần nhất thất bại ({0})", [when]),
+			};
 
-			frm.dashboard.set_headline(label);
+			frm.dashboard.set_headline(labels[message.status] || labels.Failed);
 		},
 	});
 }

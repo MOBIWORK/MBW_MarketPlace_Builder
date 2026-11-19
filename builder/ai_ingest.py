@@ -1,4 +1,4 @@
-"""Đồng bộ mẫu website sang dịch vụ AI.
+"""Đồng bộ mẫu website sang dịch vụ AI qua Task API.
 
 Người dùng chủ động bấm đồng bộ thay vì chạy tự động theo doc_events: dữ liệu
 AI học là nội dung biên tập, thường được sửa qua nhiều lần lưu, nên để người
@@ -7,14 +7,22 @@ dùng chọn thời điểm "mẫu đã xong" là hợp lý hơn đẩy mọi b�
 Chỉ gửi website_id; dịch vụ AI tự gọi ngược lại các endpoint trong
 marketplace_api.py để lấy dữ liệu.
 
+POST /v1/tasks/hr.website.template_ingest/runs chỉ nhận việc rồi trả run_id;
+kết quả thật về sau qua callback_url nên log để Pending tới lúc đó.
+
 File này nằm cạnh core, không sửa file core nào, nên merge upstream không xung đột.
 """
+
+import uuid
 
 import frappe
 import requests
 
-INGEST_PATH = "/builder_agent/api/v1/templates/ingest/batch"
+TASK_PATH = "/v1/tasks/hr.website.template_ingest/runs"
+CALLBACK_METHOD = "builder.ai_ingest.ingest_callback"
+CONCURRENCY = 1
 REQUEST_TIMEOUT = 60
+SUCCEEDED = "succeeded"
 
 
 @frappe.whitelist()
@@ -64,53 +72,138 @@ def filter_published(website_ids):
 
 
 def send_batch(website_ids):
-	"""Gửi 1 request cho cả lô rồi ghi vết cho từng mẫu.
+	"""Tạo 1 run cho cả lô rồi ghi vết cho từng mẫu.
 
 	Lỗi kết nối được ném lên để người dùng thấy ngay tại chỗ — đây là hành
 	động thủ công nên phản hồi tức thì quan trọng hơn việc nuốt lỗi.
 	"""
-	base_url, token = get_ai_config()
-	payload = {"items": [{"website_id": name} for name in website_ids]}
+	base_url, api_key = get_ai_config()
+	trace_id = uuid.uuid4().hex
+	payload = build_payload(website_ids, trace_id)
 
 	try:
 		response = requests.post(
-			f"{base_url}{INGEST_PATH}",
-			headers={"Authorization": f"Bearer {token}"},
+			f"{base_url}{TASK_PATH}",
+			headers=build_headers(api_key),
 			json=payload,
 			timeout=REQUEST_TIMEOUT,
 		)
 	except Exception as exc:
-		log_batch(website_ids, payload, error=frappe.get_traceback(with_context=False))
+		log_batch(website_ids, payload, trace_id, error=frappe.get_traceback(with_context=False))
 		frappe.throw(f"Không gọi được dịch vụ AI: {exc}")
 
-	log_batch(website_ids, payload, response=response)
+	log_batch(website_ids, payload, trace_id, response=response)
 
 	if not response.ok:
 		frappe.throw(f"Dịch vụ AI trả về lỗi {response.status_code}: {response.text[:500]}")
 
 
-def log_batch(website_ids, payload, response=None, error=None):
+def build_payload(website_ids, trace_id):
+	return {
+		"input": {
+			"items": [{"website_id": name} for name in website_ids],
+			"concurrency": CONCURRENCY,
+		},
+		"callback_url": build_callback_url(trace_id),
+	}
+
+
+def build_headers(api_key):
+	"""Idempotency-Key sinh mới mỗi lần gọi: mỗi lô là một run riêng phía AI,
+	dùng lại key sẽ bị coi là gửi trùng và trả về run cũ."""
+	return {
+		"X-API-Key": api_key,
+		"Idempotency-Key": str(uuid.uuid4()),
+		"Content-Type": "application/json",
+	}
+
+
+def build_callback_url(trace_id):
+	"""trace_id nằm trên PATH chứ không ở query: callback gửi JSON nên form_dict bị
+	thay bằng body, query string không vào tới handler. Chuỗi uuid này cũng là thứ
+	duy nhất chặn request giả, vì endpoint callback không xác thực."""
+	return f"{get_callback_base_url()}/api/method/{CALLBACK_METHOD}/{trace_id}"
+
+
+def get_callback_base_url():
+	"""Host để dịch vụ AI gọi ngược về. Sau tunnel/CDN thì khác URL site nên có
+	ai_callback_host; không cấu hình thì lấy URL site và bỏ cổng dev của bench,
+	vốn không gọi được từ ngoài."""
+	host = frappe.conf.get("ai_callback_host")
+	if host:
+		return str(host).rstrip("/")
+	return frappe.utils.get_url().replace(":8000", "").replace(":8080", "").rstrip("/")
+
+
+def get_ai_config():
+	base_url = frappe.conf.get("base_url_ai")
+	api_key = frappe.conf.get("builder_ai_api_key")
+	if not base_url or not api_key:
+		frappe.throw("Chưa cấu hình base_url_ai và builder_ai_api_key trong site_config.json.")
+	return base_url.rstrip("/"), api_key
+
+
+def log_batch(website_ids, payload, trace_id, response=None, error=None):
 	"""Ghi 1 dòng log cho mỗi mẫu để lọc được theo website."""
+	run_id = extract_run_id(response)
 	for name in website_ids:
 		frappe.get_doc(
 			{
 				"doctype": "Builder AI Ingest Log",
 				"website": name,
+				"trace_id": trace_id,
+				"run_id": run_id,
 				"request_payload": frappe.as_json(payload),
 			}
 		).record(response=response, error=error)
 
-@frappe.whitelist(methods=["POST"], allow_guest=True)
-def defined_hook():
-	payload = frappe.local.form_dict
-	print(payload)
 
-def get_ai_config():
-	base_url = frappe.conf.get("base_url_ai")
-	token = frappe.conf.get("bear_auth_ai")
-	if not base_url or not token:
-		frappe.throw("Chưa cấu hình base_url_ai và bear_auth_ai trong site_config.json.")
-	return base_url.rstrip("/"), token
+def extract_run_id(response):
+	if response is None or not response.ok:
+		return None
+	try:
+		return (response.json() or {}).get("run_id")
+	except ValueError:
+		return None
+
+
+@frappe.whitelist(methods=["POST"], allow_guest=True)
+def ingest_callback(**kwargs):
+	"""Dịch vụ AI gọi về khi chạy xong lô: cập nhật mọi log mang trace_id trên path.
+
+	Endpoint không xác thực theo thiết kế của dịch vụ AI; trace_id trong URL là
+	phần bí mật duy nhất nên không log nó ra ngoài.
+	"""
+	try:
+		trace_id = trace_id_from_path()
+		if not trace_id:
+			return reply(400, "Thiếu trace_id")
+
+		logs = frappe.get_all("Builder AI Ingest Log", filters={"trace_id": trace_id}, pluck="name")
+		if not logs:
+			return reply(404, "Không tìm thấy lô đồng bộ")
+
+		payload = frappe.request.get_json(silent=True) or {}
+		for name in logs:
+			frappe.get_doc("Builder AI Ingest Log", name).apply_callback(payload)
+
+		return reply(200, "OK")
+	except Exception:
+		frappe.log_error(title="Builder AI ingest callback error", message=frappe.get_traceback())
+		return reply(500, "Lỗi xử lý callback")
+
+
+def trace_id_from_path():
+	path = (frappe.request.path if frappe.request else "") or ""
+	marker = "ingest_callback/"
+	if marker in path:
+		return path.split(marker, 1)[1].strip("/").split("?")[0] or None
+	return None
+
+
+def reply(status_code, message):
+	frappe.local.response["http_status_code"] = status_code
+	return {"success": status_code < 400, "message": message}
 
 
 @frappe.whitelist()

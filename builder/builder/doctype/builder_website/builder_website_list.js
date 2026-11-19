@@ -15,7 +15,7 @@ frappe.listview_settings["Builder Website"] = {
 				callback: ({ message }) => {
 					if (message.skipped.length) {
 						frappe.msgprint({
-							title: __("Đã đồng bộ {0} mẫu", [message.synced.length]),
+							title: __("Đã gửi {0} mẫu sang AI", [message.synced.length]),
 							message: __("Bỏ qua {0} mẫu chưa published: {1}", [
 								message.skipped.length,
 								message.skipped.join(", "),
@@ -24,8 +24,10 @@ frappe.listview_settings["Builder Website"] = {
 						});
 					} else {
 						frappe.show_alert({
-							message: __("Đã đồng bộ {0} mẫu sang AI", [message.synced.length]),
-							indicator: "green",
+							message: __("Đã gửi {0} mẫu sang AI, đang chờ xử lý", [
+								message.synced.length,
+							]),
+							indicator: "blue",
 						});
 					}
 					listview.refresh();
