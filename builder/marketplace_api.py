@@ -319,7 +319,7 @@ def _build_pages_list(page_items):
 
     For each item that has a linked `builder_page`, the corresponding
     Builder Page document's `blocks` and `draft_blocks` fields are fetched
-    and embedded in the result.
+    and embedded in the result. Items with no linked `builder_page` are skipped.
 
     Args:
         page_items (list): child table rows from Builder Website.pages
@@ -329,6 +329,13 @@ def _build_pages_list(page_items):
     """
     pages = []
     for item in sorted(page_items, key=lambda x: x.order or 0):
+        # Page item chưa chọn Builder Page thì không render được gì. Bỏ qua thay vì
+        # để get_doc ném DoesNotExistError làm lỗi cả endpoint — và Frappe còn đổi
+        # lỗi 404 đó thành 403 "No permission for Builder Page" khi caller không có
+        # quyền đọc doctype, khiến thông điệp gây hiểu nhầm là lỗi phân quyền.
+        if not item.builder_page:
+            continue
+
         builder_page_info = frappe.get_doc("Builder Page", item.builder_page)
         page_data = {
             "page_name": item.page_name,
@@ -351,9 +358,7 @@ def _build_pages_list(page_items):
             "body_html": builder_page_info.body_html
         }
 
-        if item.builder_page:
-            page_data.update(_fetch_builder_page_blocks(item.builder_page))
-
+        page_data.update(_fetch_builder_page_blocks(item.builder_page))
         pages.append(page_data)
 
     return pages
